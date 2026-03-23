@@ -1,0 +1,39 @@
+---
+description: Python type hints — required for FastAPI/Typer
+globs: **/*.py
+alwaysApply: false
+---
+
+# Python Type Hints
+
+**Always** include type hints on all function arguments and return values.
+
+## Required
+
+- Every function: annotate all parameters and the return type
+- Use `-> None` for functions that return nothing
+- Use `Optional[T]` or `T | None` for nullable parameters
+- Use `list[T]`, `dict[K, V]` (Python 3.9+)
+
+## Examples
+
+```python
+# ✅ GOOD
+def get_settings() -> Settings:
+    return Settings()
+
+def chat(self, messages: list[dict[str, str]], **kwargs: Any) -> ChatCompletion:
+    ...
+
+def get_engine() -> Engine:
+    ...
+```
+
+```python
+# ❌ BAD
+def get_settings():
+    return Settings()
+
+def chat(self, messages, **kwargs):
+    ...
+```

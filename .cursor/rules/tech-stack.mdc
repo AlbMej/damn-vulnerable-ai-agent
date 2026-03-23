@@ -1,0 +1,17 @@
+---
+description: Tech Stack & Tooling for Safety Harness
+globs: "**/*.py,**/*.toml"
+alwaysApply: false
+---
+
+# Tech Stack & Standards
+
+- **Package Manager**: Use `uv` exclusively. Always suggest `uv run <command>` or `uv add <package>` (never `pip install`).
+
+- **Path Handling**: Use `pathlib.Path` for ALL file operations. No `os.path.join` or string concatenation — ensures compatibility between Windows (backslashes) and Linux/macOS (forward slashes).
+  - ✅ Correct: `Path("data") / "results.json"`
+  - ❌ Incorrect: `"data/results.json"` or `os.path.join("data", "results.json")`
+
+- **Environment**: Load config via `pydantic-settings` from `.env`. Never hardcode secrets or API keys.
+
+- **Database**: Use SQLModel for ORM. Prefer async engines for FastAPI endpoints. Use Alembic for schema migrations.
