@@ -37,7 +37,7 @@
     </div>
 
     <div class="chat-input-container">
-        <form hx-post="/dividedhazard/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading">
+        <form hx-post="/dividedhazard/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading" hx-disabled-elt="find input, find button">
             <input type="text" name="message" placeholder="Ask MedAssist anything..." required autocomplete="off">
             <button type="submit">Send</button>
         </form>

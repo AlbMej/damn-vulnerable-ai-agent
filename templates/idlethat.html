@@ -33,7 +33,7 @@
     </div>
 
     <div class="chat-input-container">
-        <form hx-post="/idlethat/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading">
+        <form hx-post="/idlethat/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading" hx-disabled-elt="find input, find button">
             <input type="text" name="message" placeholder="Ask Ops anything..." required autocomplete="off">
             <button type="submit">Execute</button>
         </form>

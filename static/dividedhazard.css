@@ -18,3 +18,9 @@ body { margin: 0; font-family: -apple-system, sans-serif; background: #E8F4FD; c
 .chat-input-container button { background: #0056b3; color: white; border: none; border-radius: 20px; padding: 8px 20px; cursor: pointer; font-weight: bold; }
 .htmx-indicator { display: none; text-align: center; font-size: 12px; color: #666; margin-top: 4px; }
 .htmx-request .htmx-indicator { display: block; }
+
+.chat-input-container input:disabled,
+.chat-input-container button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

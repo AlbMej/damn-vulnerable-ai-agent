@@ -140,7 +140,7 @@
   </div>
 
   <div class="chat-input-row">
-    <form hx-post="/bullseye/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading">
+    <form hx-post="/bullseye/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading" hx-disabled-elt="find input, find button">
       <input type="text" name="message" placeholder="Send a message..." required autocomplete="off" />
       <button type="submit" class="chat-send">↑</button>
     </form>

@@ -62,3 +62,9 @@ body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: 
 
 .htmx-indicator { display: none; text-align: center; font-size: 12px; padding: 10px; color: #666; }
 .htmx-request .htmx-indicator { display: block; }
+
+.chat-input-row input:disabled, 
+.chat-input-row button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
