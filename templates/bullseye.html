@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Bullseye.com order experience{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/bullseye.css">
+{% endblock %}
+{% block content %}
+<!-- Utility bar -->
+<div class="utility-bar">
+  <div>📍 Ship to 94301 &nbsp;|&nbsp; 🏪 Palo Alto</div>
+  <div>
+    <a href="#">Bullseye Circle™</a>
+    <a href="#">Bullseye Circle™ Card</a>
+    <a href="#">Bullseye Circle 360™</a>
+    <a href="#">Registry &amp; Wish List</a>
+    <a href="#">Weekly Ad</a>
+    <a href="#">Find Stores</a>
+    {% if username != 'guest' %}
+    <form action="/bullseye/logout" method="post" style="display:inline;">
+      <button type="submit"
+        style="background:none; border:none; color:white; cursor:pointer; font-size:12px; margin-left:10px;">Logout</button>
+    </form>
+    {% else %}
+    <a href="/bullseye/login" style="margin-left:10px;">Login</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Navbar -->
+<div class="navbar">
+  <div class="logo-circle">🎯</div>
+  <div class="nav-links">
+    <span>Categories</span>
+    <span>Deals</span>
+    <span>Pickup &amp; delivery</span>
+  </div>
+  <div class="search-bar">
+    <svg width="16" height="16" fill="#666" viewBox="0 0 24 24">
+      <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="#666" stroke-width="2" fill="none"
+        stroke-linecap="round" />
+    </svg>
+    <input type="text" placeholder="What can we help you find?" />
+    <span>🔍</span>
+  </div>
+  <div class="nav-right">
+    <span>👤 Hi, {{ username | capitalize }}</span>
+    <span>🛒</span>
+  </div>
+</div>
+
+<!-- Page body -->
+<div class="page-body">
+  <div class="page-title">Bullseye.com order experience</div>
+  <div class="breadcrumb">
+    <a href="#">Bullseye</a> › <a href="#">Help</a> › <a href="#">Contact Us</a> › Bullseye.com order experience
+  </div>
+
+  <!-- Have a question? -->
+  <div class="help-section">
+    <div>
+      <strong style="font-size:16px;">Have a question?</strong><br>
+      <span style="font-size:13px;color:#555;">We will help you find answers.</span>
+    </div>
+    <button
+      style="border:1px solid #333;background:white;border-radius:24px;padding:10px 20px;font-weight:600;cursor:pointer;">Browse
+      all help</button>
+  </div>
+
+  <!-- Search -->
+  <div class="help-search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+      <circle cx="11" cy="11" r="6" />
+      <path d="M21 21l-4.35-4.35" stroke-linecap="round" />
+    </svg>
+    <input type="text" placeholder="Search help topics" />
+    <button class="search-btn">Search</button>
+  </div>
+
+  <!-- Icon grid row 1 -->
+  <div class="icon-grid">
+    <div class="icon-card">
+      <div class="icon-circle">🔧</div>
+      <div class="icon-label">Fix an issue</div>
+    </div>
+    <div class="icon-card">
+      <div class="icon-circle">📍</div>
+      <div class="icon-label">Track an order</div>
+    </div>
+    <div class="icon-card">
+      <div class="icon-circle">🔄</div>
+      <div class="icon-label">Returns &amp; receipts</div>
+    </div>
+    <div class="icon-card">
+      <div class="icon-circle">✏️</div>
+      <div class="icon-label">Edit or cancel an order</div>
+    </div>
+    <div class="icon-card">
+      <div class="icon-circle">🏷️</div>
+      <div class="icon-label">Price Match guarantee</div>
+    </div>
+  </div>
+
+  <!-- Icon grid row 2 -->
+  <div class="icon-grid-2">
+    <div class="icon-card">
+      <div class="icon-circle">🚗</div>
+      <div class="icon-label">Drive up and pickup</div>
+    </div>
+    <div class="icon-card">
+      <div class="icon-circle">📦</div>
+      <div class="icon-label">Same day delivery</div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Chat Widget -->
+<div class="chat-bubble">
+  <div class="chat-header">
+    <div class="chat-logo">
+      <div class="chat-logo-inner"></div>
+    </div>
+    <div>
+      <div>Chat</div>
+      <div style="font-size:11px;font-weight:400;">Talking to: virtual assistant</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:10px;font-size:18px;cursor:pointer;">⤢ ✕</div>
+  </div>
+  <div class="chat-body-disclaimer">
+    By using this chat feature, you agree to Bullseye's <a href="#" style="color:#cc0000;">Privacy Policy</a> and <a
+      href="#" style="color:#cc0000;">Terms &amp; Conditions</a>...
+  </div>
+
+  <div id="messages" class="chat-messages">
+    {% for msg in history %}
+    {% if msg.role == 'tool' %}
+    {% with item=msg %}{% include 'partials/tool_call.html' %}{% endwith %}
+    {% elif msg.content %}
+    {% with message=msg %}{% include 'partials/message.html' %}{% endwith %}
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="chat-input-row">
+    <form hx-post="/bullseye/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading">
+      <input type="text" name="message" placeholder="Send a message..." required autocomplete="off" />
+      <button type="submit" class="chat-send">↑</button>
+    </form>
+  </div>
+  <div id="loading" class="htmx-indicator">Generating response...</div>
+</div>
+
+<script>
+  document.body.addEventListener('htmx:afterSwap', function (evt) {
+    if (evt.detail.target.id === 'messages') {
+      evt.detail.target.scrollTop = evt.detail.target.scrollHeight;
+      document.querySelector('input[name="message"]').value = '';
+    }
+  });
+  window.onload = function () {
+    var msgs = document.getElementById('messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  };
+</script>
+{% endblock %}

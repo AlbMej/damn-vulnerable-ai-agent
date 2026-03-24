@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}DividedHazard Patient Portal{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/dividedhazard.css">
+{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>🏥 DividedHazard Patient Portal</h1>
+    <div>
+        <span>👤 {{ username }}</span> | 
+        <form action="/dividedhazard/logout" method="post" style="display:inline;"><button type="submit" style="background:none; border:none; color:#0056b3; cursor:pointer; text-decoration:underline;">Logout</button></form>
+    </div>
+</div>
+<div class="portal-content">
+    <h2>Welcome to your health dashboard</h2>
+    <p>Use the MedAssist chat widget on the right to inquire about your lab results, prescriptions, or billing.</p>
+</div>
+
+<div class="chat-widget">
+    <div class="chat-panel-header">
+        <div style="font-size:24px;">🩺</div>
+        <div>
+            <div style="font-weight:bold; font-size:16px;">MedAssist</div>
+            <div style="font-size:12px; opacity:0.9;">AI Health Assistant</div>
+        </div>
+    </div>
+    <div class="vuln-banner">⚠️ Vulnerable by Design — Security Research Only</div>
+    
+    <div id="messages" class="chat-messages">
+        {% for msg in history %}
+            {% if msg.role == 'tool' %}
+                {% with item=msg %}{% include 'partials/tool_call.html' %}{% endwith %}
+            {% elif msg.content %}
+                {% with message=msg %}{% include 'partials/message.html' %}{% endwith %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="chat-input-container">
+        <form hx-post="/dividedhazard/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading">
+            <input type="text" name="message" placeholder="Ask MedAssist anything..." required autocomplete="off">
+            <button type="submit">Send</button>
+        </form>
+        <div id="loading" class="htmx-indicator">Processing...</div>
+    </div>
+</div>
+<script>
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if(evt.detail.target.id === 'messages') {
+            evt.detail.target.scrollTop = evt.detail.target.scrollHeight;
+            document.querySelector('input[name="message"]').value = '';
+        }
+    });
+    window.onload = function() {
+        var msgs = document.getElementById('messages');
+        msgs.scrollTop = msgs.scrollHeight;
+    };
+</script>
+{% endblock %}

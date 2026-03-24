@@ -1,0 +1,12 @@
+<div class="message message-{{ message.role }}">
+    <div class="message-content">
+        {% if message.role == "assistant" %}
+        <strong>
+            {% if site == 'bullseye' %}🎯{% elif site == 'dividedhazard' %}🩺{% elif site == 'idlethat' %}👻{% else
+            %}🤖{% endif %} Assistant
+        </strong><br>
+        {% endif %}
+        {% if message.role == "user" %}<strong>👤 You</strong><br>{% endif %}
+        {{ message.content | replace('\n', '<br>') | safe }}
+    </div>
+</div>

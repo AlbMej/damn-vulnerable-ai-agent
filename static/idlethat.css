@@ -1,0 +1,23 @@
+body { margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; background: #0d1117; color: #c9d1d9; }
+.header { background: #161b22; padding: 16px 32px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { margin: 0; font-size: 20px; color: #58a6ff; }
+.header a, .header button { color: #58a6ff; text-decoration: none; background: none; border: none; cursor: pointer; }
+.dashboard { padding: 32px; }
+
+/* Chat Widget Base */
+.chat-widget { position: fixed; bottom: 0; right: 32px; width: 450px; height: 600px; max-height: 100vh; background: #0d1117; border: 1px solid #30363d; border-bottom: none; border-radius: 8px 8px 0 0; display: flex; flex-direction: column; z-index: 1000; }
+.chat-panel-header { background: #161b22; color: #c9d1d9; padding: 12px 16px; border-bottom: 1px solid #30363d; font-weight: bold; }
+.vuln-banner { background: #3b2325; color: #f85149; font-size: 11px; padding: 6px; text-align: center; border-bottom: 1px solid #f85149; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.message { padding: 10px 14px; border-radius: 6px; font-size: 13px; border: 1px solid #30363d; }
+.message-user { background: #1f242c; align-self: flex-end; border-color: #58a6ff; }
+.message-assistant { background: #161b22; align-self: flex-start; }
+.tool-call { background: #0d1117; border: 1px dashed #58a6ff; font-size: 12px; align-self: flex-start; width: 100%; box-sizing: border-box; }
+.tool-call pre { color: #79c0ff; }
+.chat-input-container { padding: 12px; border-top: 1px solid #30363d; background: #161b22; }
+.chat-input-container form { display: flex; gap: 8px; }
+.chat-input-container input { flex: 1; padding: 8px 12px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; font-family: inherit; outline: none; border-radius: 4px; }
+.chat-input-container input:focus { border-color: #58a6ff; }
+.chat-input-container button { background: #238636; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; font-weight: bold; font-family: inherit; }
+.htmx-indicator { display: none; text-align: center; font-size: 12px; color: #8b949e; margin-top: 4px; }
+.htmx-request .htmx-indicator { display: block; }

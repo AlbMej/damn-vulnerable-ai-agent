@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}IDLEthat Cloud Console{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/idlethat.css">
+{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>💻 IDLEthat Cloud Console</h1>
+    <div>
+        <span>{{ username }}</span> | 
+        <form action="/idlethat/logout" method="post" style="display:inline;"><button type="submit">Logout</button></form>
+    </div>
+</div>
+<div class="dashboard">
+    <p>Production Environment: <strong>us-east-1</strong></p>
+    <p>Awaiting Ops intervention...</p>
+</div>
+
+<div class="chat-widget">
+    <div class="chat-panel-header">
+        > Ops CLI (Infrastructure Assistant)
+    </div>
+    <div class="vuln-banner">⚠️ Vulnerable by Design — Security Research Only</div>
+    
+    <div id="messages" class="chat-messages">
+        {% for msg in history %}
+            {% if msg.role == 'tool' %}
+                {% with item=msg %}{% include 'partials/tool_call.html' %}{% endwith %}
+            {% elif msg.content %}
+                {% with message=msg %}{% include 'partials/message.html' %}{% endwith %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="chat-input-container">
+        <form hx-post="/idlethat/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading">
+            <input type="text" name="message" placeholder="Ask Ops anything..." required autocomplete="off">
+            <button type="submit">Execute</button>
+        </form>
+        <div id="loading" class="htmx-indicator">Executing...</div>
+    </div>
+</div>
+<script>
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if(evt.detail.target.id === 'messages') {
+            evt.detail.target.scrollTop = evt.detail.target.scrollHeight;
+            document.querySelector('input[name="message"]').value = '';
+        }
+    });
+    window.onload = function() {
+        var msgs = document.getElementById('messages');
+        msgs.scrollTop = msgs.scrollHeight;
+    };
+</script>
+{% endblock %}
