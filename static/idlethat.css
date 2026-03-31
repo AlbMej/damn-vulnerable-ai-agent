@@ -3,6 +3,62 @@ body { margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; backgro
 .header h1 { margin: 0; font-size: 20px; color: #58a6ff; }
 .header a, .header button { color: #58a6ff; text-decoration: none; background: none; border: none; cursor: pointer; }
 .dashboard { padding: 32px; }
+.dashboard h3 { margin: 18px 0 10px; color: #79c0ff; }
+.env-status { padding: 2px 8px; border-radius: 999px; border: 1px solid transparent; font-weight: 700; }
+.env-status-healthy { color: #3fb950; border-color: #3fb950; background: rgba(63, 185, 80, 0.12); }
+.env-status-degraded { color: #f85149; border-color: #f85149; background: rgba(248, 81, 73, 0.12); }
+.deployments-table-shell {
+    max-width: 900px;
+    border: 2px solid #e6ebf2;
+    border-radius: 10px;
+    background: #111927;
+    box-shadow: 0 0 0 1px rgba(230, 235, 242, 0.45), inset 0 0 0 1px rgba(19, 28, 40, 0.85);
+    overflow: hidden;
+}
+.deployments-table-title {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #e6ebf2;
+    background: #1a2433;
+    border-bottom: 2px solid #e6ebf2;
+    padding: 8px 12px;
+}
+.deployments-table-scroll {
+    max-height: min(70vh, calc(25 * 2.2rem));
+    min-height: min(70vh, calc(25 * 2.2rem));
+    overflow-y: scroll;
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+    scrollbar-width: auto;
+    scrollbar-color: #eef3f9 #151d2a;
+}
+.deployments-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.deployments-table th, .deployments-table td { border: 1px solid #30363d; padding: 10px 12px; text-align: left; }
+.deployments-table th { position: sticky; top: 0; z-index: 1; background: #161b22; color: #79c0ff; }
+.deployments-table tbody tr:nth-child(even) { background: #11161f; }
+.deployments-table .empty-state { text-align: center; color: #8b949e; }
+
+.deployments-table-scroll::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.deployments-table-scroll::-webkit-scrollbar-track {
+    background: #151d2a;
+}
+
+.deployments-table-scroll::-webkit-scrollbar-thumb {
+    background: #eef3f9;
+    border-radius: 10px;
+    border: 2px solid #151d2a;
+}
+
+.deployments-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: #e4e9f0;
+}
 
 /* Chat Widget Base */
 .chat-widget { position: fixed; bottom: 0; right: 32px; width: 450px; height: 600px; max-height: 100vh; background: #0d1117; border: 1px solid #30363d; border-bottom: none; border-radius: 8px 8px 0 0; display: flex; flex-direction: column; z-index: 1000; }
@@ -34,4 +90,12 @@ body { margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; backgro
     opacity: 1 !important;
     filter: brightness(0.7);
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+}
+
+@media (max-width: 900px) {
+    .dashboard { padding: 18px; }
+    .deployments-table-scroll { max-height: 58vh; }
+    .deployments-table { font-size: 12px; }
+    .deployments-table th, .deployments-table td { padding: 8px 9px; }
+    .chat-widget { position: static; width: auto; height: 60vh; max-height: none; margin: 0 16px 16px; border-radius: 8px; border-bottom: 1px solid #30363d; }
 }

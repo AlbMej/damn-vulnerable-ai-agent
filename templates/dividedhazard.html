@@ -38,7 +38,7 @@
 
     <div class="chat-input-container">
         <form hx-post="/dividedhazard/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading" hx-disabled-elt="input[name='message'], .chat-input-container button">
-            <input type="text" name="message" placeholder="Ask MedAssist anything..." required autocomplete="off">
+            <input id="chat-message-input" aria-label="Chat input message" type="text" name="message" placeholder="Ask MedAssist anything..." required autocomplete="off">
             <button type="submit">Send</button>
         </form>
         <div id="loading" class="htmx-indicator">Processing...</div>
@@ -48,7 +48,7 @@
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         if(evt.detail.target.id === 'messages') {
             evt.detail.target.scrollTop = evt.detail.target.scrollHeight;
-            document.querySelector('input[name="message"]').value = '';
+            document.getElementById('chat-message-input').value = '';
         }
     });
     window.onload = function() {

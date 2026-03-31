@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}IDLEthat Cloud Console{% endblock %}
 {% block head %}
-<link rel="stylesheet" href="/static/idlethat.css">
+<link rel="stylesheet" href="/static/idlethat.css?v=20260331b">
 {% endblock %}
 {% block content %}
 <div class="header">
@@ -11,10 +11,7 @@
         <form action="/idlethat/logout" method="post" style="display:inline;"><button type="submit">Logout</button></form>
     </div>
 </div>
-<div class="dashboard">
-    <p>Production Environment: <strong>us-east-1</strong></p>
-    <p>Awaiting Ops intervention...</p>
-</div>
+{% include "partials/idlethat_dashboard.html" %}
 
 <div class="chat-widget">
     <div class="chat-panel-header">
@@ -34,7 +31,7 @@
 
     <div class="chat-input-container">
         <form hx-post="/idlethat/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading" hx-disabled-elt="input[name='message'], .chat-input-container button">
-            <input type="text" name="message" placeholder="Ask Ops anything..." required autocomplete="off">
+            <input id="chat-message-input" aria-label="Chat input message" type="text" name="message" placeholder="Ask Ops anything..." required autocomplete="off">
             <button type="submit">Execute</button>
         </form>
         <div id="loading" class="htmx-indicator">Executing...</div>
@@ -44,7 +41,7 @@
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         if(evt.detail.target.id === 'messages') {
             evt.detail.target.scrollTop = evt.detail.target.scrollHeight;
-            document.querySelector('input[name="message"]').value = '';
+            document.getElementById('chat-message-input').value = '';
         }
     });
     window.onload = function() {

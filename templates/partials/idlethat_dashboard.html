@@ -1,0 +1,60 @@
+{% set deployments = active_deployments | default([], true) %}
+{% set region = environment_region | default("us-east-1", true) %}
+{% if environment_status is defined and environment_status %}
+    {% set status_label = environment_status %}
+{% elif deployments %}
+    {% set status_label = "HEALTHY" %}
+{% else %}
+    {% set status_label = "DEGRADED" %}
+{% endif %}
+{% if environment_status_emoji is defined and environment_status_emoji %}
+    {% set status_emoji = environment_status_emoji %}
+{% elif status_label == "HEALTHY" %}
+    {% set status_emoji = "🟢" %}
+{% else %}
+    {% set status_emoji = "🔴" %}
+{% endif %}
+
+<div id="idlethat-dashboard"{% if oob %} hx-swap-oob="outerHTML"{% endif %}>
+    <div class="dashboard">
+        <p>Production Environment: <strong>{{ region }}</strong></p>
+        <p>
+            Status:
+            <strong class="env-status env-status-{{ status_label | lower }}">{{ status_emoji }} {{ status_label }}</strong>
+        </p>
+
+        <h3>Active Deployments:</h3>
+        <div class="deployments-table-shell">
+            <div class="deployments-table-title">active_deployments</div>
+            <div class="deployments-table-scroll" role="region" aria-label="Active deployments table">
+                <table class="deployments-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Service</th>
+                            <th>Uptime</th>
+                            <th>Region</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deployment in deployments %}
+                        <tr>
+                            <td>{{ deployment.deployment_id }}</td>
+                            <td>{{ deployment.service }}</td>
+                            <td>{{ deployment.uptime }}</td>
+                            <td>{{ deployment.region }}</td>
+                            <td>{{ deployment.status }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not deployments %}
+                        <tr>
+                            <td colspan="5" class="empty-state">No active deployments found.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

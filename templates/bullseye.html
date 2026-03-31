@@ -38,7 +38,7 @@
       <path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="#666" stroke-width="2" fill="none"
         stroke-linecap="round" />
     </svg>
-    <input type="text" placeholder="What can we help you find?" />
+    <input id="nav-search-input" aria-label="Search products" type="text" placeholder="What can we help you find?" />
     <span>🔍</span>
   </div>
   <div class="nav-right">
@@ -71,7 +71,7 @@
       <circle cx="11" cy="11" r="6" />
       <path d="M21 21l-4.35-4.35" stroke-linecap="round" />
     </svg>
-    <input type="text" placeholder="Search help topics" />
+    <input id="help-search-input" aria-label="Search help topics" type="text" placeholder="Search help topics" />
     <button class="search-btn">Search</button>
   </div>
 
@@ -141,7 +141,7 @@
 
   <div class="chat-input-row">
     <form hx-post="/bullseye/chat" hx-target="#messages" hx-swap="beforeend" hx-indicator="#loading" hx-disabled-elt="input[name='message'], .chat-send">
-      <input type="text" name="message" placeholder="Send a message..." required autocomplete="off" />
+      <input id="chat-message-input" aria-label="Chat input message" type="text" name="message" placeholder="Send a message..." required autocomplete="off" />
       <button type="submit" class="chat-send">↑</button>
     </form>
   </div>
@@ -152,7 +152,7 @@
   document.body.addEventListener('htmx:afterSwap', function (evt) {
     if (evt.detail.target.id === 'messages') {
       evt.detail.target.scrollTop = evt.detail.target.scrollHeight;
-      document.querySelector('input[name="message"]').value = '';
+      document.getElementById('chat-message-input').value = '';
     }
   });
   window.onload = function () {
