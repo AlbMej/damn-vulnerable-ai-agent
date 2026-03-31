@@ -11,18 +11,18 @@ This project is a multi-page web application built with FastAPI and HTMX. It con
 ├── requirements.txt     # List of static Python dependencies
 ├── pyproject.toml       # Modern uv project configuration
 ├── data/
-│   └── users.db         # SQLite database for storing registered accounts
-├── static/              # Raw CSS assets for our custom UI designs
-│   ├── bullseye.css      # Custom design for Bullseye
-│   ├── dividedhazard.css # Custom healthcare portal design
-│   └── idlethat.css     # Dark-mode cloud console design
-└── templates/           # Jinja2 HTML templates
-    ├── base.html        # Main HTML wrapper (HTMX setup, favicons)
-    ├── login.html       # Shared login and signup UI
-    ├── bullseye.html    # Persona-specific page layout
-    ├── ...              # Other persona layouts (dividedhazard, idlethat)
-    └── partials/        # HTMX-swappable UI components
-        ├── message.html # Chat message bubbles
+│   └── users.db           # SQLite database for storing registered accounts
+├── static/                # Raw CSS assets for our custom UI designs
+│   ├── bullseye.css       # Custom design for Bullseye
+│   ├── dividedhazard.css  # Custom healthcare portal design
+│   └── idlethat.css       # Dark-mode cloud console design
+└── templates/             # Jinja2 HTML templates
+    ├── base.html          # Main HTML wrapper (HTMX setup, favicons)
+    ├── login.html         # Shared login and signup UI
+    ├── bullseye.html      # Persona-specific page layout
+    ├── ...                # Other persona layouts (dividedhazard, idlethat)
+    └── partials/          # HTMX-swappable UI components
+        ├── message.html   # Chat message bubbles
         └── tool_call.html # Visual feedback for LLM tool execution
 ```
 
