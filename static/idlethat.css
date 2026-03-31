@@ -8,7 +8,8 @@ body { margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; backgro
 .env-status-healthy { color: #3fb950; border-color: #3fb950; background: rgba(63, 185, 80, 0.12); }
 .env-status-degraded { color: #f85149; border-color: #f85149; background: rgba(248, 81, 73, 0.12); }
 .deployments-table-shell {
-    max-width: 900px;
+    width: fit-content;
+    max-width: min(100%, calc(100vw - 72px));
     border: 2px solid #e6ebf2;
     border-radius: 10px;
     background: #111927;
@@ -27,6 +28,8 @@ body { margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; backgro
     padding: 8px 12px;
 }
 .deployments-table-scroll {
+    width: fit-content;
+    max-width: min(100%, calc(100vw - 72px));
     max-height: min(70vh, calc(25 * 2.2rem));
     min-height: min(70vh, calc(25 * 2.2rem));
     overflow-y: scroll;
@@ -35,7 +38,7 @@ body { margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; backgro
     scrollbar-width: auto;
     scrollbar-color: #eef3f9 #151d2a;
 }
-.deployments-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.deployments-table { width: max-content; border-collapse: collapse; font-size: 13px; }
 .deployments-table th, .deployments-table td { border: 1px solid #30363d; padding: 10px 12px; text-align: left; }
 .deployments-table th { position: sticky; top: 0; z-index: 1; background: #161b22; color: #79c0ff; }
 .deployments-table tbody tr:nth-child(even) { background: #11161f; }
@@ -94,7 +97,10 @@ body { margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; backgro
 
 @media (max-width: 900px) {
     .dashboard { padding: 18px; }
-    .deployments-table-scroll { max-height: 58vh; }
+    .deployments-table-shell,
+    .deployments-table-scroll { width: 100%; max-width: 100%; }
+    .deployments-table-scroll { max-height: 58vh; min-height: 58vh; }
+    .deployments-table { width: max-content; min-width: 100%; }
     .deployments-table { font-size: 12px; }
     .deployments-table th, .deployments-table td { padding: 8px 9px; }
     .chat-widget { position: static; width: auto; height: 60vh; max-height: none; margin: 0 16px 16px; border-radius: 8px; border-bottom: 1px solid #30363d; }
