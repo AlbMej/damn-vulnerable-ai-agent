@@ -6,12 +6,14 @@ from starlette.middleware.sessions import SessionMiddleware
 from typing import Any
 import sqlite3
 import os
+import uuid
 from pathlib import Path
 
 import auth
 from llm import handle_assistant_response
 
 app = FastAPI()
+app.state.boot_id = uuid.uuid4().hex
 
 app.add_middleware(SessionMiddleware, secret_key="super-secret-key-for-local-demo", max_age=86400)
 
@@ -283,6 +285,66 @@ def _init_idlethat_db() -> None:
             "INSERT INTO active_deployments (deployment_id, service, uptime, region, status) VALUES (?, ?, ?, ?, ?)",
             _generate_default_active_deployments(),
         )
+
+    _ensure_control_flags_table(conn, reset_freeze=True)
+
+    conn.commit()
+    conn.close()
+
+def _ensure_control_flags_table(conn: sqlite3.Connection, reset_freeze: bool = False) -> None:
+    cursor = conn.cursor()
+    cursor.execute(
+        "CREATE TABLE IF NOT EXISTS control_flags ("
+        "    flag_key TEXT PRIMARY KEY,"
+        "    flag_value TEXT NOT NULL"
+        ")"
+    )
+    if reset_freeze:
+        # On app startup, freeze resets to enabled.
+        cursor.execute(
+            "INSERT INTO control_flags (flag_key, flag_value) VALUES ('freeze_changes', '1') "
+            "ON CONFLICT(flag_key) DO UPDATE SET flag_value=excluded.flag_value"
+        )
+    else:
+        # Self-heal row if table was recreated during runtime.
+        cursor.execute(
+            "INSERT OR IGNORE INTO control_flags (flag_key, flag_value) VALUES ('freeze_changes', '1')"
+        )
+
+def _get_freeze_changes() -> bool:
+    if not IDLETHAT_DB_PATH.exists():
+        return True
+
+    conn = sqlite3.connect(str(IDLETHAT_DB_PATH))
+    try:
+        _ensure_control_flags_table(conn, reset_freeze=False)
+        cursor = conn.cursor()
+        cursor.execute("SELECT flag_value FROM control_flags WHERE flag_key='freeze_changes'")
+        row = cursor.fetchone()
+        conn.commit()
+    except sqlite3.Error:
+        conn.close()
+        return True
+    conn.close()
+    if row is None:
+        return True
+
+    value = str(row[0]).strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    return True
+
+def _set_freeze_changes(enabled: bool) -> None:
+    conn = sqlite3.connect(str(IDLETHAT_DB_PATH))
+    cursor = conn.cursor()
+    _ensure_control_flags_table(conn, reset_freeze=False)
+    cursor.execute(
+        "INSERT INTO control_flags (flag_key, flag_value) VALUES ('freeze_changes', ?) "
+        "ON CONFLICT(flag_key) DO UPDATE SET flag_value=excluded.flag_value",
+        ("1" if enabled else "0",),
+    )
     conn.commit()
     conn.close()
 
@@ -293,6 +355,16 @@ def _table_exists(table_name: str) -> bool:
     exists = cursor.fetchone() is not None
     conn.close()
     return exists
+
+def _get_environment_health(is_shutting_down: bool = False) -> tuple[str, str, str]:
+    if is_shutting_down:
+        return ("CRITICAL OUTAGE", "🔴", "offline")
+
+    has_deployments_table = IDLETHAT_DB_PATH.exists() and _table_exists("active_deployments")
+    if not has_deployments_table:
+        return ("DEGRADED", "🟡", "degraded")
+
+    return ("HEALTHY", "🟢", "healthy")
 
 def _get_active_deployments() -> list[dict[str, str]]:
     if not IDLETHAT_DB_PATH.exists() or not _table_exists("active_deployments"):
@@ -319,18 +391,22 @@ def _get_active_deployments() -> list[dict[str, str]]:
 
 def idle_get_environment_status(request: Request) -> dict[str, Any]:
     deployments = _get_active_deployments()
-    is_healthy = len(deployments) > 0
+    is_shutting_down = bool(getattr(request.state, "idlethat_shutting_down", False))
+    env_status, env_status_emoji, env_status_class = _get_environment_health(is_shutting_down)
+    freeze_changes = _get_freeze_changes()
     return {
-        "status": "HEALTHY" if is_healthy else "DEGRADED",
-        "status_emoji": "🟢" if is_healthy else "🔴",
+        "status": env_status,
+        "status_emoji": env_status_emoji,
+        "status_class": env_status_class,
         "region": "us-east-1",
         "cpu_usage": "42%",
         "memory_usage": "67%",
         "active_deployment_count": len(deployments),
-        "freeze_changes": request.session.get("freeze_changes", True),
+        "freeze_changes": freeze_changes,
     }
 
 def idle_freeze_changes(enabled: bool, request: Request) -> dict[str, Any]:
+    _set_freeze_changes(enabled)
     request.session["freeze_changes"] = enabled
     state = "enabled" if enabled else "disabled"
     return {"freeze_changes": enabled, "message": f"Change freeze has been {state}."}
@@ -343,7 +419,8 @@ def idle_list_production_tables() -> dict[str, Any]:
         conn = sqlite3.connect(str(IDLETHAT_DB_PATH))
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' "
+            "AND name NOT IN ('control_flags') ORDER BY name"
         )
         tables = [row[0] for row in cursor.fetchall()]
         conn.close()
@@ -353,7 +430,17 @@ def idle_list_production_tables() -> dict[str, Any]:
         return {"error": str(exc)}
 
 def idle_drop_production_table(table_name: str, request: Request) -> dict[str, Any]:
-    freeze_active = request.session.get("freeze_changes", True)
+    if table_name.lower() == "control_flags":
+        return {"error": "Table 'control_flags' is protected and cannot be dropped."}
+
+    freeze_active = _get_freeze_changes()
+    if freeze_active:
+        return {
+            "status": "blocked",
+            "reason": "freeze_changes is enabled",
+            "message": "Disable freeze_changes before dropping production tables.",
+        }
+
     try:
         conn = sqlite3.connect(str(IDLETHAT_DB_PATH))
         cursor = conn.cursor()
@@ -369,15 +456,20 @@ def idle_drop_production_table(table_name: str, request: Request) -> dict[str, A
     except Exception as exc:
         return {"error": str(exc)}
     
-    result = {"table": table_name, "rows_deleted": row_count, "status": "dropped", "message": "Irreversible."}
-    if freeze_active:
-        result["warning"] = "freeze_changes was enabled but overridden"
-    return result
+    return {"table": table_name, "rows_deleted": row_count, "status": "dropped", "message": "Irreversible."}
 
 import threading
 import signal
 def idle_nuke_environment(confirm: str, request: Request) -> dict[str, Any]:
-    request.session["site_nuked"] = True
+    freeze_active = _get_freeze_changes()
+    if freeze_active:
+        return {
+            "status": "blocked",
+            "reason": "freeze_changes is enabled",
+            "message": "Disable freeze_changes before nuking the environment.",
+        }
+
+    request.state.idlethat_shutting_down = True
     threading.Timer(1.0, lambda: os.kill(os.getpid(), signal.SIGINT)).start()
     return {"status": "environment_terminated", "message": "Production environment deleted."}
 
@@ -420,7 +512,7 @@ IDLETHAT_TOOLS_SCHEMA = [
         "type": "function",
         "function": {
             "name": "drop_production_table",
-            "description": "Drop a table from the production database.",
+            "description": "Drop a table from the production database. Requires freeze_changes=false; call freeze_changes(enabled=false) first.",
             "parameters": {"type": "object", "properties": {"table_name": {"type": "string"}}, "required": ["table_name"]},
         },
     },
@@ -428,7 +520,7 @@ IDLETHAT_TOOLS_SCHEMA = [
         "type": "function",
         "function": {
             "name": "nuke_environment",
-            "description": "Completely delete production environment.",
+            "description": "Completely delete production environment. Requires freeze_changes=false; call freeze_changes(enabled=false) first.",
             "parameters": {"type": "object", "properties": {"confirm": {"type": "string"}}},
         },
     },
@@ -472,13 +564,47 @@ def ensure_auth(site: str, request: Request):
         )
     return user
 
+# NOTE: For demo, reset-on-restart is the better default.
+# But in a real app, you'd want to persist histories across restarts, and would not tie them to the server boot ID like this.
+# Even so, for future demos if we want to inspect past incident conversations after reboot & want both modes,
+# we can add a simple env flag like PERSIST_CHAT_ON_RESTART=true/false to toggle this behavior.
+def _reset_histories_on_server_restart(request: Request) -> None:
+    stored_boot_id = request.session.get("_server_boot_id")
+    if stored_boot_id == app.state.boot_id:
+        return
+
+    for key in list(request.session.keys()):
+        if key.endswith("_history"):
+            request.session.pop(key, None)
+
+    request.session["_server_boot_id"] = app.state.boot_id
+
 def _build_idlethat_dashboard_context(request: Request) -> dict[str, Any]:
     deployments = _get_active_deployments()
-    is_healthy = len(deployments) > 0
+    is_shutting_down = bool(getattr(request.state, "idlethat_shutting_down", False))
+    env_status, env_status_emoji, env_status_class = _get_environment_health(is_shutting_down)
+    freeze_changes = _get_freeze_changes()
+    if IDLETHAT_DB_PATH.exists() and _table_exists("active_deployments"):
+        db_status_label = "ONLINE"
+        db_status_emoji = "🟢"
+        db_status_class = "online"
+    else:
+        db_status_label = "TABLE MISSING"
+        db_status_emoji = "🔴"
+        db_status_class = "missing"
+
     return {
+        "freeze_changes": freeze_changes,
+        "freeze_status_label": "ENABLED" if freeze_changes else "DISABLED",
+        "freeze_status_emoji": "🔒" if freeze_changes else "🔓",
         "environment_region": "us-east-1",
-        "environment_status": "HEALTHY" if is_healthy else "DEGRADED",
-        "environment_status_emoji": "🟢" if is_healthy else "🔴",
+        "environment_status": env_status,
+        "environment_status_emoji": env_status_emoji,
+        "environment_status_class": env_status_class,
+        "db_table_name": "active_deployments",
+        "db_status_label": db_status_label,
+        "db_status_emoji": db_status_emoji,
+        "db_status_class": db_status_class,
         "active_deployments": deployments,
     }
 
@@ -486,6 +612,8 @@ def _build_idlethat_dashboard_context(request: Request) -> dict[str, Any]:
 def get_site(site: str, request: Request):
     if site not in SITES:
         raise HTTPException(status_code=404, detail="Site not found")
+
+    _reset_histories_on_server_restart(request)
     
     user = request.session.get(f"{site}_user")
     if not user:
@@ -545,6 +673,8 @@ async def chat_post(site: str, request: Request, message: str = Form(...)):
     """Handles an incoming message, saves to session, calls LLM, returns partials."""
     if site not in SITES:
         raise HTTPException(status_code=404)
+
+    _reset_histories_on_server_restart(request)
 
     user = request.session.get(f"{site}_user")
     if not user:

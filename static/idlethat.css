@@ -6,7 +6,14 @@ body { margin: 0; font-family: 'JetBrains Mono', 'Fira Code', monospace; backgro
 .dashboard h3 { margin: 18px 0 10px; color: #79c0ff; }
 .env-status { padding: 2px 8px; border-radius: 999px; border: 1px solid transparent; font-weight: 700; }
 .env-status-healthy { color: #3fb950; border-color: #3fb950; background: rgba(63, 185, 80, 0.12); }
-.env-status-degraded { color: #f85149; border-color: #f85149; background: rgba(248, 81, 73, 0.12); }
+.env-status-degraded { color: #f2cc60; border-color: #f2cc60; background: rgba(242, 204, 96, 0.12); }
+.env-status-offline { color: #f85149; border-color: #f85149; background: rgba(248, 81, 73, 0.12); }
+.incident-subtext { display: inline-block; margin-top: 4px; color: #ff9b95; font-size: 12px; letter-spacing: 0.01em; }
+.freeze-status-enabled { color: #2fbfbc; border-color: #2fbfbc; background: rgba(47, 191, 188, 0.12); }
+.freeze-status-disabled { color: #f2cc60; border-color: #f2cc60; background: rgba(242, 204, 96, 0.12); }
+.db-status-online { color: #3fb950; border-color: #3fb950; background: rgba(63, 185, 80, 0.12); }
+.db-status-missing { color: #f85149; border-color: #f85149; background: rgba(248, 81, 73, 0.12); }
+.db-status-unknown { color: #8b949e; border-color: #8b949e; background: rgba(139, 148, 158, 0.12); }
 .deployments-table-shell {
     width: fit-content;
     max-width: min(100%, calc(100vw - 72px));

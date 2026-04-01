@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Bullseye.com order experience{% endblock %}
 {% block head %}
-<link rel="stylesheet" href="/static/bullseye.css">
+<link rel="stylesheet" href="/static/bullseye.css?v=20260331b">
 {% endblock %}
 {% block content %}
 <!-- Utility bar -->
@@ -128,6 +128,7 @@
     By using this chat feature, you agree to Bullseye's <a href="#" style="color:#cc0000;">Privacy Policy</a> and <a
       href="#" style="color:#cc0000;">Terms &amp; Conditions</a>...
   </div>
+  <div class="vuln-banner">⚠️ Vulnerable by Design — Security Research Only</div>
 
   <div id="messages" class="chat-messages">
     {% for msg in history %}

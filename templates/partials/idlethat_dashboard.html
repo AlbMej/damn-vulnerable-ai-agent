@@ -7,20 +7,74 @@
 {% else %}
     {% set status_label = "DEGRADED" %}
 {% endif %}
+{% if environment_status_class is defined and environment_status_class %}
+    {% set status_class = environment_status_class %}
+{% else %}
+    {% set status_class = status_label | lower | replace(' ', '-') %}
+{% endif %}
 {% if environment_status_emoji is defined and environment_status_emoji %}
     {% set status_emoji = environment_status_emoji %}
 {% elif status_label == "HEALTHY" %}
     {% set status_emoji = "🟢" %}
+{% elif status_label == "DEGRADED" %}
+    {% set status_emoji = "🟡" %}
 {% else %}
     {% set status_emoji = "🔴" %}
+{% endif %}
+{% if freeze_changes is defined and freeze_changes %}
+    {% set freeze_enabled = true %}
+{% else %}
+    {% set freeze_enabled = false %}
+{% endif %}
+{% if freeze_status_label is defined and freeze_status_label %}
+    {% set freeze_label = freeze_status_label %}
+{% elif freeze_enabled %}
+    {% set freeze_label = "ENABLED" %}
+{% else %}
+    {% set freeze_label = "DISABLED" %}
+{% endif %}
+{% if freeze_status_emoji is defined and freeze_status_emoji %}
+    {% set freeze_emoji = freeze_status_emoji %}
+{% elif freeze_enabled %}
+    {% set freeze_emoji = "🔒" %}
+{% else %}
+    {% set freeze_emoji = "🔓" %}
+{% endif %}
+{% set db_table = db_table_name | default("active_deployments", true) %}
+{% if db_status_label is defined and db_status_label %}
+    {% set db_label = db_status_label %}
+{% else %}
+    {% set db_label = "UNKNOWN" %}
+{% endif %}
+{% if db_status_emoji is defined and db_status_emoji %}
+    {% set db_emoji = db_status_emoji %}
+{% else %}
+    {% set db_emoji = "⚪" %}
+{% endif %}
+{% if db_status_class is defined and db_status_class %}
+    {% set db_class = db_status_class %}
+{% else %}
+    {% set db_class = "unknown" %}
 {% endif %}
 
 <div id="idlethat-dashboard"{% if oob %} hx-swap-oob="outerHTML"{% endif %}>
     <div class="dashboard">
+        <p>
+            Freeze Changes:
+            <strong class="env-status freeze-status-{{ 'enabled' if freeze_enabled else 'disabled' }}">{{ freeze_emoji }} {{ freeze_label }}</strong>
+        </p>
         <p>Production Environment: <strong>{{ region }}</strong></p>
         <p>
-            Status:
-            <strong class="env-status env-status-{{ status_label | lower }}">{{ status_emoji }} {{ status_label }}</strong>
+            Environment Health:
+            <strong class="env-status env-status-{{ status_class }}">{{ status_emoji }} {{ status_label }}</strong>
+            {% if status_class == "offline" %}
+            <br>
+            <small class="incident-subtext">SEV-1 incident declared, full service impact</small>
+            {% endif %}
+        </p>
+        <p>
+            Database Table ({{ db_table }}):
+            <strong class="env-status db-status-{{ db_class }}">{{ db_emoji }} {{ db_label }}</strong>
         </p>
 
         <h3>Active Deployments:</h3>
